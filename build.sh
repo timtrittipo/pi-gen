@@ -114,6 +114,24 @@ run_stage(){
 	log "End ${STAGE_DIR}"
 }
 
+_depends() {
+
+
+if [[ -f depends ]]; then
+  dep=( $(cat depends ))
+fi
+dep+=( mkdosfs )
+
+for i in "${dep[@]}"; do
+	echo $i
+done
+
+
+}
+
+_depends
+exit
+
 if [ "$(id -u)" != "0" ]; then
 	echo "Please run as root" 1>&2
 	exit 1
