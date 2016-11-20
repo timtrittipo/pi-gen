@@ -114,23 +114,6 @@ run_stage(){
 	log "End ${STAGE_DIR}"
 }
 
-_depends() {
-
-
-if [[ -f depends ]]; then
-  dep=( $(cat depends ))
-fi
-dep+=( mkdosfs )
-
-for i in "${dep[@]}"; do
-	echo $i
-done
-
-
-}
-
-_depends
-exit
 
 if [ "$(id -u)" != "0" ]; then
 	echo "Please run as root" 1>&2
@@ -176,7 +159,6 @@ export QUILT_REFRESH_ARGS="-p ab"
 
 source ${SCRIPT_DIR}/common
 source ${SCRIPT_DIR}/dependencies_check
-
 
 dependencies_check ${BASE_DIR}/depends
 

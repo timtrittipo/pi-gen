@@ -24,6 +24,9 @@ dependencies_check()
 		echo "Reqired dependencies not installed"
 		echo
 		echo "This can be resolved on Debian/Raspbian systems by installing:"
+		if [[ ! -f /etc/debian_version ]] && which apt-get > /dev/null 2>&1 ; then
+			apt-get install $missing
+	  fi
 		echo "$missing"
 		false
 	fi
