@@ -1,5 +1,9 @@
 #!/bin/bash -e
 
+[[ $1 ]] && export $1
+[[ $2 ]] && export $2
+
+
 run_sub_stage()
 {
 	log "Begin ${SUB_STAGE_DIR}"
