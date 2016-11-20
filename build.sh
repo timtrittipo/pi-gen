@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
-[[ $1 ]] && export $1
-[[ $2 ]] && export $2
-
+if [[ $1 =~ IMG_NAME= ]]; then
+	 export $1
+fi
 
 run_sub_stage()
 {
