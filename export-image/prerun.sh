@@ -104,7 +104,19 @@ OPT_DEV=/dev/mapper/${LOOP_DEV}p2
 mkdosfs -n boot -S 512 -s 16 -v $BOOT_DEV > /dev/null
 mkfs.ext4 -O ^huge_file $ROOT_DEV > /dev/null
 mkfs.ext4 -O ^huge_file $ROOT2_DEV > /dev/null
-mkfs.ext4 -O ^huge_file $OPT_DEV > /dev/null
+
+_lvm_setup(){
+ echo "doing lvm setup"
+  # create a
+  # pv
+  # vg
+  # lv
+  # ext4 fs
+
+  # # mkfs.ext4 -O ^huge_file $OPT_DEV > /dev/null
+
+}
+_lvm_setup
 
 
 mount -v $ROOT_DEV ${ROOTFS_DIR} -t ext4
