@@ -10,7 +10,7 @@ dependencies_check()
 
 	for depfile in "$@"; do
 		if [[ -e "$depfile" ]]; then
-			deps="$(sed -f "${SCRIPT_DIR}/remove-comments.sed" < ${BASE_DIR}/depends)"
+			deps="$(sed -f "${SCRIPT_DIR}/remove-comments.sed" < 	${BASE_DIR}/depends)"
 
 		fi
 		for dep in $deps; do
@@ -23,8 +23,12 @@ dependencies_check()
 	if [[ "$missing" ]]; then
 		echo "Reqired dependencies not installed"
 		echo
-		echo "This can be resolved on Debian/Raspbian systems by installing:"
-		echo "$missing"
-		false
+		if [[ -f ${BASE_DIR}/AUTOBUILD ]] && [[ -f /etc/debian_version ]] && which apt-get > /dev/null 2>&1 ; then
+			apt-get install -y $missing
+	  else
+			echo "This can be resolved on Debian/Raspbian systems by installing:"
+			echo "$missing"
+			false
+		fi
 	fi
 }

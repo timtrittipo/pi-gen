@@ -1,5 +1,9 @@
 #!/bin/bash -e
 
+if [[ $1 =~ IMG_NAME= ]]; then
+	 export $1
+fi
+
 run_sub_stage()
 {
 	log "Begin ${SUB_STAGE_DIR}"
@@ -114,6 +118,7 @@ run_stage(){
 	log "End ${STAGE_DIR}"
 }
 
+
 if [ "$(id -u)" != "0" ]; then
 	echo "Please run as root" 1>&2
 	exit 1
@@ -158,7 +163,6 @@ export QUILT_REFRESH_ARGS="-p ab"
 
 source ${SCRIPT_DIR}/common
 source ${SCRIPT_DIR}/dependencies_check
-
 
 dependencies_check ${BASE_DIR}/depends
 
