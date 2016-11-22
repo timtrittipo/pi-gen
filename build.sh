@@ -1,4 +1,6 @@
 #!/bin/bash -e
++set -e
++set -x
 
 if [[ $1 =~ IMG_NAME= ]]; then
 	 export $1
