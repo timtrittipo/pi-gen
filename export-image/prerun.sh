@@ -5,7 +5,7 @@ _mkparts()(
 #IMG_FILE="testing_empty_delete.img"
 P1_OFFSET=8192    # where official raspbian starts partition 1 (sectors)
 BOOT_FS_SIZE=32     # how big will partition 1 be in MB
-ROOT_FS_SIZE=256      # how big will partition 2 and 3 be in MB
+ROOT_FS_SIZE=1024      # how big will partition 2 and 3 be in MB
 OPT_FS_INITIAL_SIZE=16  # how big initially ( before post reboot resize+grow)
                           # will exteneded partition 4 be in MB
 
