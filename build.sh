@@ -6,6 +6,10 @@ if [[ $1 =~ IMG_NAME= ]]; then
 	 export $1
 fi
 
+if which which apt-cacher >/dev/null 2&>1; then
+	APT_PROXY=${APT_PROXY:-127.0.0.1}
+fi
+
 run_sub_stage()
 {
 	log "Begin ${SUB_STAGE_DIR}"

@@ -1,16 +1,17 @@
 ssh less lvm2
 # fbset sudo psmisc
-# module-init-tools ed ncdu crda
-# console-setup keyboard-configuration debconf-utils parted unzip
+module-init-tools ed
+#ncdu crda
+console-setup keyboard-configuration debconf-utils parted unzip
 # python bash-completion pkg-config
-# hardlink ca-certificates curl
-# fake-hwclock ntp
-# usbutils
-# libraspberrypi-dev
+hardlink ca-certificates curl
+fake-hwclock ntp
+usbutils
+libraspberrypi-dev
 # libfreetype6-dev
-# dosfstools
-# dphys-swapfile
-# raspberrypi-sys-mods
+dosfstools
+dphys-swapfile
+raspberrypi-sys-mods
 # pi-bluetooth
-# apt-listchanges
-# usb-modeswitch
+apt-listchanges
+usb-modeswitch
