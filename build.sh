@@ -132,6 +132,10 @@ if [ -z "${IMG_NAME}" ]; then
 	echo "IMG_NAME not set" 1>&2
 	exit 1
 fi
+if [ -z "${APP_NAME}" ]; then
+	echo "APP_NAME not set please export APP_NAME before running script" 1>&2
+	exit 1
+fi
 
 export IMG_DATE=${IMG_DATE:-"$(date -u +%Y-%m-%d)"}
 
@@ -143,6 +147,7 @@ export LOG_FILE="${WORK_DIR}/build.log"
 
 export CLEAN
 export IMG_NAME
+export APP_NAME
 export APT_PROXY
 
 export STAGE
