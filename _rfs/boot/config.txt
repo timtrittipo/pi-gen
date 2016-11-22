@@ -1,0 +1,6 @@
+[pi3]
+kernel=u-boot.bin
+#kernel=vmlinuz-4.4.0-1-rpi2
+#initramfs initrd.img-4.4.0-1-rpi2 followkernel
+# enable the serial console for the installed system
+enable_uart=1
