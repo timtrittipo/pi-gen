@@ -14,7 +14,7 @@ run_sub_stage()
 			log "Begin ${SUB_STAGE_DIR}/${i}-debconf"
 			on_chroot sh -e - << EOF
 debconf-set-selections <<SELEOF
-`cat ${i}-debconf`
+$(cat ${i}-debconf)
 SELEOF
 EOF
 		log "End ${SUB_STAGE_DIR}/${i}-debconf"
@@ -44,7 +44,7 @@ EOF
 			pushd ${STAGE_WORK_DIR} > /dev/null
 			if [ "${CLEAN}" = "1" ]; then
 				rm -rf .pc
-				rm -rf *-pc
+				rm -rf -- *-pc
 			fi
 			QUILT_PATCHES=${SUB_STAGE_DIR}/${i}-patches
 			SUB_STAGE_QUILT_PATCH_DIR="$(basename $SUB_STAGE_DIR)-pc"
@@ -134,20 +134,18 @@ fi
 
 IMG_NAME=${IMG_NAME:-cibuild}
 APP_NAME=${IMG_NAME:-default_app_name}
+# if which which apt-cacher >/dev/null 2&>1; then
+# 	APT_PROXY=${APT_PROXY:-APT_PROXY=http://127.0.0.1:3142}
+# fi
 
 # cmd line args take previdence over build.env
-if [[ $1 =~ _NAME= ]]; then
-	 export $1
-fi
-if [[ $2 =~ _NAME= ]]; then
-	 export $2
-fi
+[[ $1 =~ _NAME= ]] && export $1
+[[ $2 =~ _NAME= ]] && export $2
 
-echo " apt       img          app"
-echo "$APT_PROXY $IMG_NAME $APP_NAME"
-if which which apt-cacher >/dev/null 2&>1; then
-	APT_PROXY=${APT_PROXY:-APT_PROXY=http://127.0.0.1:3142}
-fi
+
+printf "%-20s : %.12s : %-8s"  apt       img          app
+printf "%-20s : %.12s : %-8s" $APT_PROXY $IMG_NAME $APP_NAME
+
 if [ -z "${IMG_NAME}" ]; then
 	echo "IMG_NAME not set" 1>&2
 	exit 1
@@ -158,7 +156,7 @@ if [ -z "${APP_NAME}" ]; then
 fi
 
 export IMG_DATE=${IMG_DATE:-"$(date -u +%Y-%m-%d)"}
-
+#shellcheck disable=SC2155
 export BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export SCRIPT_DIR="${BASE_DIR}/scripts"
 export WORK_DIR="${BASE_DIR}/work/${IMG_DATE}-${IMG_NAME}"
