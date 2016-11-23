@@ -6,7 +6,7 @@ _mkparts()(
 P1_OFFSET=8192    # where official raspbian starts partition 1 (sectors)
 BOOT_FS_SIZE=32     # how big will partition 1 be in MB
 ROOT_FS_SIZE=1024      # how big will partition 2 and 3 be in MB
-OPT_FS_INITIAL_SIZE=16  # how big initially ( before post reboot resize+grow)
+OPT_FS_INITIAL_SIZE=96  # how big initially ( before post reboot resize+grow)
                           # will exteneded partition 4 be in MB
 
 
@@ -38,6 +38,15 @@ P1_START_SEC=$P1_OFFSET
 P2_START_SEC=$(expr $P1_SECTORS + 1 )
 P3_START_SEC=$(expr $P2_START_SEC \+ $P2_SECTORS + 1 )
 P4_START_SEC=$(expr $P3_START_SEC \+ $P3_SECTORS + 1 )
+
+echo "START SEC        OFFSET   "
+echo "============================="
+echo $P1_START_SEC   $P1_OFFSET
+echo $P2_START_SEC   $P1_SECTORS
+echo $P3_START_SEC   $P2_SECTORS
+echo $P4_START_SEC    $P3_SECTORS
+
+
 
 fallocate -l ${IMG_SIZE} ${IMG_FILE}
 # t type
@@ -99,7 +108,7 @@ LOOP_DEV=`kpartx -asv ${IMG_FILE} | grep -E -o -m1 'loop[[:digit:]]+' | head -n 
 BOOT_DEV=/dev/mapper/${LOOP_DEV}p1
 ROOT_DEV=/dev/mapper/${LOOP_DEV}p2
 ROOT2_DEV=/dev/mapper/${LOOP_DEV}p3
-OPT_DEV=/dev/mapper/${LOOP_DEV}p2
+OPT_DEV=/dev/mapper/${LOOP_DEV}p4
 
 mkdosfs -n boot -S 512 -s 16 -v $BOOT_DEV > /dev/null
 mkfs.ext4 -O ^huge_file $ROOT_DEV > /dev/null
