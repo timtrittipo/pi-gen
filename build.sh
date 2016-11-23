@@ -2,13 +2,8 @@
 
 set -x
 
-if [[ $1 =~ IMG_NAME= ]]; then
-	 export $1
-fi
 
-if which which apt-cacher >/dev/null 2&>1; then
-	APT_PROXY=${APT_PROXY:-APT_PROXY=http://127.0.0.1:3142}
-fi
+
 
 run_sub_stage()
 {
@@ -133,7 +128,26 @@ fi
 if [ -f config ]; then
 	source config
 fi
+if [ -f build.env ]; then
+	source build.env
+fi
 
+IMG_NAME=${IMG_NAME:-cibuild}
+APP_NAME=${IMG_NAME:-default_app_name}
+
+# cmd line args take previdence over build.env
+if [[ $1 =~ _NAME= ]]; then
+	 export $1
+fi
+if [[ $2 =~ _NAME= ]]; then
+	 export $2
+fi
+
+echo " apt       img          app"
+echo "$APT_PROXY $IMG_NAME $APP_NAME"
+if which which apt-cacher >/dev/null 2&>1; then
+	APT_PROXY=${APT_PROXY:-APT_PROXY=http://127.0.0.1:3142}
+fi
 if [ -z "${IMG_NAME}" ]; then
 	echo "IMG_NAME not set" 1>&2
 	exit 1
