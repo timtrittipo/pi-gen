@@ -37,17 +37,6 @@ on_chroot sh -e - <<EOF
 usermod --pass='*' root
 EOF
 
-on_chroot sh -e - <<EOF
-pvcreate /dev/sda4
-vg create --autobackup y --verbose --name vg0 /dev/sda4
-lvcreate --autobackup y --verbose --cache --cachemode writethrough --name opt --size 1G vg0
-mkfs.ext4 -m 12 -E num_backup_sb=2,discard,mmp_update_interval=120 /dev/vg0/opt
-EOF
 
-# ext4 options
-# -m 12 - reserve 12%
-# num_backup_sb=2 - create 3 backup superblocks
-# discard - true
-# mmp_update_interval=120 - only force write every 120 seconds to increase sdcard lifespan
 
 rm -f ${ROOTFS_DIR}/etc/ssh/ssh_host_*_key*
