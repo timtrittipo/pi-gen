@@ -39,12 +39,12 @@ P2_START_SEC=$(expr $P1_SECTORS + 1 )
 P3_START_SEC=$(expr $P2_START_SEC \+ $P2_SECTORS + 1 )
 P4_START_SEC=$(expr $P3_START_SEC \+ $P3_SECTORS + 1 )
 
-echo "START SEC        OFFSET   "
+echo "START SEC            OFFSET   "
 echo "============================="
-echo $P1_START_SEC   $P1_OFFSET
-echo $P2_START_SEC   $P1_SECTORS
-echo $P3_START_SEC   $P2_SECTORS
-echo $P4_START_SEC    $P3_SECTORS
+echo $P1_START_SEC     $P1_OFFSET
+echo $P2_START_SEC     $P1_SECTORS
+echo $P3_START_SEC     $P2_SECTORS
+echo $P4_START_SEC     $P3_SECTORS
 
 
 
@@ -112,7 +112,11 @@ OPT_DEV=/dev/mapper/${LOOP_DEV}p4
 
 mkdosfs -n boot -S 512 -s 16 -v $BOOT_DEV > /dev/null
 mkfs.ext4 -O ^huge_file $ROOT_DEV > /dev/null
-mkfs.ext4 -O ^huge_file $ROOT2_DEV > /dev/null
+
+# create after to reduce image write times
+# #savetime
+# mkfs.ext4 -O ^huge_file $ROOT2_DEV > /dev/null
+
 
 _lvm_setup(){
  echo "doing lvm setup"

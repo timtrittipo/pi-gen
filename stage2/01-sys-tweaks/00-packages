@@ -1,5 +1,6 @@
 ssh less lvm2
-# fbset sudo psmisc
+# fbset
+sudo psmisc
 module-init-tools ed
 #ncdu crda
 console-setup keyboard-configuration debconf-utils parted unzip
