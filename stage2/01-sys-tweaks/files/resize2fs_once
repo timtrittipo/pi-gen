@@ -13,7 +13,7 @@ case "$1" in
   start)
     log_daemon_msg "Starting resize2fs_once"
     log_daemon_msg "Setting up lvm2"
-    #fdisk -Linux LVM 
+    #fdisk -Linux LVM
 
   # pvcreate /dev/sda4
   # vg create --autobackup y --verbose --name vg0 /dev/sda4
@@ -28,10 +28,12 @@ case "$1" in
   # # mmp_update_interval=120 - only force write every 120 seconds to increase sdcard lifespan
 
     #ROOT_DEV=`grep -Eo 'root=[[:graph:]]+' /proc/cmdline | cut -d '=' -f 2-` &&
-    OPT_DEV=$(ls /dev/mapper/*opt) &&
-    resize2fs $OPT_DEV &&
-    update-rc.d resize2fs_once remove &&
-    rm /etc/init.d/resize2fs_once &&
+
+
+    # OPT_DEV=$(ls /dev/mapper/*opt) &&
+    # resize2fs $OPT_DEV &&
+    # update-rc.d resize2fs_once remove &&
+    # rm /etc/init.d/resize2fs_once &&
     log_end_msg $?
     ;;
   *)
