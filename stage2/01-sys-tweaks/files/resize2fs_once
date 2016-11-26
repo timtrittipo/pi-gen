@@ -9,24 +9,49 @@
 # Description:
 ### END INIT INFO
 . /lib/lsb/init-functions
+
+EXP_PART=/dev/mmcblk0p4
+
 case "$1" in
   start)
     log_daemon_msg "Starting resize2fs_once"
     log_daemon_msg "Setting up lvm2"
-    #fdisk -Linux LVM
+    fdisk ${IMG_FILE} <<EOF
+    o
+    n
 
-  # pvcreate /dev/sda4
-  # vg create --autobackup y --verbose --name vg0 /dev/sda4
-  # lvcreate --autobackup y --verbose --cache --cachemode writethrough --name opt --size 1G vg0
-  # mkfs.ext4 -m 12 -E num_backup_sb=2,discard,mmp_update_interval=120 /dev/vg0/opt
-  # EOF
-  #
+
+    $P3_START_SEC
+    +${P3_MB}M
+    p
+    n
+
+    e
+    $P4_START_SEC
+    +${P4_MB}M
+    p
+    t
+    4
+    8e
+
+    p
+
+EOF
+
+
+
+if [ -b /dev/mmcblk0p4 ]; then
+  pvcreate /dev/mmcblk0p4
+  vg create --autobackup y --verbose --name vg0 /dev/sda4
+  # TODO change size to be % of total vg size
+  lvcreate --autobackup y --verbose --cache --cachemode writethrough --name opt --size 4G vg0
+  mkfs.ext4 -m 12 -E num_backup_sb=2,discard,mmp_update_interval=120 /dev/vg0/opt
   # # ext4 options
   # # -m 12 - reserve 12%
   # # num_backup_sb=2 - create 3 backup superblocks
   # # discard - true
   # # mmp_update_interval=120 - only force write every 120 seconds to increase sdcard lifespan
-
+fi
     #ROOT_DEV=`grep -Eo 'root=[[:graph:]]+' /proc/cmdline | cut -d '=' -f 2-` &&
 
 

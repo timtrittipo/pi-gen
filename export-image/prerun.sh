@@ -4,7 +4,7 @@ IMG_FILE="${STAGE_WORK_DIR}/${IMG_DATE}-${IMG_NAME}${IMG_SUFFIX}.img"
 _mkparts()(
 #IMG_FILE="testing_empty_delete.img"
 P1_OFFSET=8192    # where official raspbian starts partition 1 (sectors)
-BOOT_FS_SIZE=32     # how big will partition 1 be in MB
+BOOT_FS_SIZE=64     # how big will partition 1 be in MB
 ROOT_FS_SIZE=1024      # how big will partition 2 and 3 be in MB
 OPT_FS_INITIAL_SIZE=96  # how big initially ( before post reboot resize+grow)
                           # will exteneded partition 4 be in MB
@@ -20,8 +20,12 @@ P3_MB=$ROOT_FS_SIZE
 P4_MB=$OPT_FS_INITIAL_SIZE
 
 
-# calculate total image size to create a file with fallocate
-IMG_SIZE=$(expr $P1_MB \+ $P2_MB \+ $P3_MB \+ $P4_MB \+ 32)M
+### calculate total image size to create a file with fallocate
+### if generate all now
+# IMG_SIZE=$(expr $P1_MB \+ $P2_MB \+ $P3_MB \+ $P4_MB \+ 32)M
+
+# to keep initial img small we only generate minimum now and create others on first boot
+IMG_SIZE=$(expr $P1_MB \+ $P2_MB \+ 32)M
 
 SECTOR_SIZE=512
 SZ=$SECTOR_SIZE
@@ -29,7 +33,7 @@ SZ=$SECTOR_SIZE
 P1_SECTORS=$(expr $P1_MB \* 1024 \* 1024 \/ $SZ )
 P2_SECTORS=$(expr $P2_MB \* 1024 \* 1024 \/ $SZ )
 P3_SECTORS=$(expr $P3_MB \* 1024 \* 1024 \/ $SZ )
-#P4_SECTORS=$(expr $P4_MB \* 1024 \* 1024 \/ $SZ )
+P4_SECTORS=$(expr $P4_MB \* 1024 \* 1024 \/ $SZ )
 
 #add the inital offset to factor
 P1_SECTORS=$(expr $P1_SECTORS \+ $P1_OFFSET )
@@ -71,22 +75,6 @@ n
 $P2_START_SEC
 +${P2_MB}M
 p
-n
-
-
-$P3_START_SEC
-+${P3_MB}M
-p
-n
-
-e
-$P4_START_SEC
-+${P4_MB}M
-p
-t
-4
-8e
-
 w
 EOF
 
