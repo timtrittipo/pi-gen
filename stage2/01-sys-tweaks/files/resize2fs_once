@@ -10,13 +10,14 @@
 ### END INIT INFO
 . /lib/lsb/init-functions
 
-EXP_PART=/dev/mmcblk0p4
+
+DISK=/dev/mmcblk0p
 
 case "$1" in
   start)
     log_daemon_msg "Starting resize2fs_once"
     log_daemon_msg "Setting up lvm2"
-    fdisk ${IMG_FILE} <<EOF
+    fdisk ${DISK} <<EOF
     o
     n
 
