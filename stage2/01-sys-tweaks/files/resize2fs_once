@@ -10,56 +10,62 @@
 ### END INIT INFO
 . /lib/lsb/init-functions
 
+DISK=/dev/mmcblk0p      # device
+OPT_PART=5              # partition number
+VGPV=${DISK}${OPT_PART} # volume group physical volume
+VGNAME=vg0
+LVNAME=opt
 
-DISK=/dev/mmcblk0p
+_volumes_be_logical(){
+  if [ ! -b $VGPV ]; then
+    log_daemon_msg "$VGPV not present"
+    exit 1
+  elif vgdisplay $VGNAME ]; then
+    log_daemon_msg "$VGNAME exists"
+  fi
+
+  if ! pvcreate -v $VGPV; then
+    log_daemon_msg "error pvcreate"
+  fi
+
+  if ! vgcreate --autobackup y --verbose --name $VGNAME $VGPV; then
+    log_daemon_msg "error vgcreate"
+  fi
+
+  if ! lvcreate --autobackup y --verbose --cache --cachemode writethrough --name $LVNAME --size 92% $VGNAME ; then
+    log_daemon_msg "error lvcreate"
+  fi
+
+  if ! mkfs.ext4 -m 12 -E num_backup_sb=2,discard,mmp_update_interval=120 /dev/$VGNAME/$LVNAME; then
+    log_daemon_msg "error mkfs.ext4"
+  else
+    echo "/dev/mapper/${VGNAME}-${LVNAME} /opt          ext4    defaults        1 2" >> /etc/fstab
+  fi
+
+  if [ -d /_opt_prep ]; then
+    mv -fv /_opt_prep /opt
+  else
+    log_daemon_msg "_opt_prep not present"
+  fi 
+
+
+    # # ext4 options
+    # # -m 12 - reserve 12%
+    # # num_backup_sb=2 - create 3 backup superblocks
+    # # discard - true
+    # # mmp_update_interval=120 - only force write every 120 seconds to increase sdcard lifespan
+
+      # OPT_DEV=$(ls /dev/mapper/*opt) &&
+      # resize2fs $OPT_DEV &&
+      # update-rc.d resize2fs_once remove &&
+      # rm /etc/init.d/resize2fs_once &&
+}
 
 case "$1" in
   start)
-    log_daemon_msg "Starting resize2fs_once"
+    log_daemon_msg "Starting resize2fs_once -- "
     log_daemon_msg "Setting up lvm2"
-    fdisk ${DISK} <<EOF
-    o
-    n
-
-
-    $P3_START_SEC
-    +${P3_MB}M
-    p
-    n
-
-    e
-    $P4_START_SEC
-    +${P4_MB}M
-    p
-    t
-    4
-    8e
-
-    p
-
-EOF
-
-
-
-if [ -b /dev/mmcblk0p4 ]; then
-  pvcreate /dev/mmcblk0p4
-  vg create --autobackup y --verbose --name vg0 /dev/sda4
-  # TODO change size to be % of total vg size
-  lvcreate --autobackup y --verbose --cache --cachemode writethrough --name opt --size 4G vg0
-  mkfs.ext4 -m 12 -E num_backup_sb=2,discard,mmp_update_interval=120 /dev/vg0/opt
-  # # ext4 options
-  # # -m 12 - reserve 12%
-  # # num_backup_sb=2 - create 3 backup superblocks
-  # # discard - true
-  # # mmp_update_interval=120 - only force write every 120 seconds to increase sdcard lifespan
-fi
-    #ROOT_DEV=`grep -Eo 'root=[[:graph:]]+' /proc/cmdline | cut -d '=' -f 2-` &&
-
-
-    # OPT_DEV=$(ls /dev/mapper/*opt) &&
-    # resize2fs $OPT_DEV &&
-    # update-rc.d resize2fs_once remove &&
-    # rm /etc/init.d/resize2fs_once &&
+    _volumes_be_logical
     log_end_msg $?
     ;;
   *)
