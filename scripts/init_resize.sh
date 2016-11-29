@@ -131,7 +131,7 @@ main () {
     return 1
   fi
   if [ -f /_fs_info ];then
-    . /fs_info
+    . /_fs_info
   fi
   if [ "$NOOBS" = "1" ]; then
     BCM_MODULE=`cat /proc/cpuinfo | grep -e "^Hardware" | cut -d ":" -f 2 | tr -d " " | tr '[:upper:]' '[:lower:]'`
