@@ -1,65 +1,72 @@
 #!/bin/bash -e
 IMG_FILE="${STAGE_WORK_DIR}/${IMG_DATE}-${IMG_NAME}${IMG_SUFFIX}.img"
 
-_mkparts()(
-#IMG_FILE="testing_empty_delete.img"
-P1_OFFSET=8192    # where official raspbian starts partition 1 (sectors)
-BOOT_FS_SIZE=64     # how big will partition 1 be in MB
-ROOT_FS_SIZE=1024      # how big will partition 2 and 3 be in MB
-OPT_FS_INITIAL_SIZE=96  # how big initially ( before post reboot resize+grow)
-                          # will exteneded partition 4 be in MB
+
+_calc(){
+  #IMG_FILE="testing_empty_delete.img"
+  P1_OFFSET=8192    # where official raspbian starts partition 1 (sectors)
+  BOOT_FS_SIZE=64     # how big will partition 1 be in MB
+  ROOT_FS_SIZE=1024      # how big will partition 2 and 3 be in MB
+  P1_MB=$BOOT_FS_SIZE # rename for fdisk
+  P2_MB=$ROOT_FS_SIZE # rename for fdisk
+  P3_MB=$ROOT_FS_SIZE
+  # P4_MB=$OPT_FS_INITIAL_SIZE
 
 
-#unmount_image ${IMG_FILE}
-rm -fv ${IMG_FILE}
+  ### calculate total image size to create a file with fallocate
+  ### if generate all now
+  # IMG_SIZE=$(expr $P1_MB \+ $P2_MB \+ $P3_MB \+ $P4_MB \+ 32)M
 
+  # to keep initial img small we only generate minimum now and create others on first boot
+  IMG_SIZE=$(expr $P1_MB \+ $P2_MB \+ 32)M
 
-P1_MB=$BOOT_FS_SIZE # rename for fdisk
-P2_MB=$ROOT_FS_SIZE # rename for fdisk
-P3_MB=$ROOT_FS_SIZE
-P4_MB=$OPT_FS_INITIAL_SIZE
+  SECTOR_SIZE=512
+  SZ=$SECTOR_SIZE
+  ALIGN=2048 # make parted happy
 
+  # calculate sectors in each partion
+  P1_SECTORS=$(expr $P1_MB \* 1024 \* 1024 \/ $SZ )
+  P1_SECTORS=$(expr $P1_SECTORS \+ $P1_OFFSET )
 
-### calculate total image size to create a file with fallocate
-### if generate all now
-# IMG_SIZE=$(expr $P1_MB \+ $P2_MB \+ $P3_MB \+ $P4_MB \+ 32)M
+  P2_SECTORS=$(expr $P2_MB \* 1024 \* 1024 \/ $SZ )
+  P3_SECTORS=$(expr $P3_MB \* 1024 \* 1024 \/ $SZ )
+  # P4_SECTORS=$(expr $P4_MB \* 1024 \* 1024 \/ $SZ )
 
-# to keep initial img small we only generate minimum now and create others on first boot
-IMG_SIZE=$(expr $P1_MB \+ $P2_MB \+ 32)M
+  ### - these are created here -
+  #add the inital offset to factor
+  P1_START_SEC=$P1_OFFSET
+  P2_START_SEC=$(expr $P1_SECTORS \+ $ALIGN )
 
-SECTOR_SIZE=512
-SZ=$SECTOR_SIZE
-# calculate sectors in each partion
-P1_SECTORS=$(expr $P1_MB \* 1024 \* 1024 \/ $SZ )
-P1_SECTORS=$(expr $P1_SECTORS \+ $P1_OFFSET )
+  ### - these are created on first boot by scripts/init_resize.sh
+  P3_START_SEC=$(expr $P2_START_SEC \+ $P2_SECTORS \+ $ALIGN )
+  P3_END_SEC=$(expr $P3_START_SEC \+ $P3_SECTORS)
+  P4_START_SEC=$(expr $P3_END_SEC \+ $ALIGN ) # p extended partition
+  P5_START_SEC=$(expr $P4_START_SEC \+ $ALIGN ) # logical part P5 is right after P4
+                                                # as it exists within P4
 
-P2_SECTORS=$(expr $P2_MB \* 1024 \* 1024 \/ $SZ )
-P3_SECTORS=$(expr $P3_MB \* 1024 \* 1024 \/ $SZ )
-P4_SECTORS=$(expr $P4_MB \* 1024 \* 1024 \/ $SZ )
+  echo "START SEC            OFFSET   "
+  echo "============================="
+  echo $P1_START_SEC     $P1_OFFSET
+  echo $P2_START_SEC     $P1_SECTORS
+  echo $P3_START_SEC     $P2_SECTORS
+  echo $P4_START_SEC     $P3_SECTORS
+  #  P4_SECTORS=$P4_SECTORS
 
-#add the inital offset to factor
-
-P1_START_SEC=$P1_OFFSET
-P2_START_SEC=$(expr $P1_SECTORS + 1 )
-P3_START_SEC=$(expr $P2_START_SEC \+ $P2_SECTORS + 1 )
-P4_START_SEC=$(expr $P3_START_SEC \+ $P3_SECTORS + 1 )
-
-echo "START SEC            OFFSET   "
-echo "============================="
-echo $P1_START_SEC     $P1_OFFSET
-echo $P2_START_SEC     $P1_SECTORS
-echo $P3_START_SEC     $P2_SECTORS
-echo $P4_START_SEC     $P3_SECTORS
-
-
-echo "P1_SECTORS=$P1_SECTORS
+  echo "P1_SECTORS=$P1_SECTORS
 P2_SECTORS=$P2_SECTORS
 P3_SECTORS=$P3_SECTORS
-P4_SECTORS=$P4_SECTORS
 P1_START_SEC=$P1_OFFSET
 P2_START_SEC=$P2_START_SEC
 P3_START_SEC=$P3_START_SEC
-P4_START_SEC=$P4_START_SEC" >> ${EXPORT_ROOTFS_DIR}/_fs_info
+P3_END_SEC=$P3_END_SEC
+P4_START_SEC=$P4_START_SEC
+P5_START_SEC=$P5_START_SEC" > ${EXPORT_ROOTFS_DIR}/_fs_info
+
+  echo "Finished calc"
+  echo "Wrote file to ${EXPORT_ROOTFS_DIR}/_fs_info"
+}
+
+_mkparts()(
 
 fallocate -l ${IMG_SIZE} ${IMG_FILE}
 # t type
@@ -87,18 +94,25 @@ p
 w
 EOF
 
-
 fdisk -l ${IMG_FILE}
 )
 
+if [[ $1 == "calc" ]]; then
+  EXPORT_ROOTFS_DIR=/tmp
+  _calc
+  exit 0
+fi
+
+# --------------------------------------
 unmount_image ${IMG_FILE}
 
-rm -f ${IMG_FILE}
+rm -fv ${IMG_FILE}
 
 rm -rf ${ROOTFS_DIR}
 
 mkdir -p ${ROOTFS_DIR}
 
+_calc
 _mkparts
 
 LOOP_DEV=`kpartx -asv ${IMG_FILE} | grep -E -o -m1 'loop[[:digit:]]+' | head -n 1`
@@ -115,17 +129,12 @@ mkdir -p ${ROOTFS_DIR}/boot
 mkdir -p ${ROOTFS_DIR}/opt/$APP_NAME/data
 mount -v $BOOT_DEV ${ROOTFS_DIR}/boot -t vfat
 
-
-
 rsync -aHAXx ${EXPORT_ROOTFS_DIR}/ ${ROOTFS_DIR}/
 
 
-original(){
-BOOT_SIZE=$(du -sh ${EXPORT_ROOTFS_DIR}/boot -B M | cut -f 1 | tr -d M)
-TOTAL_SIZE=$(du -sh ${EXPORT_ROOTFS_DIR} -B M | cut -f 1 | tr -d M)
-
-IMG_SIZE=$(expr $BOOT_SIZE \* 2 \+ $TOTAL_SIZE \+ 512)M
-
-fallocate -l ${IMG_SIZE} ${IMG_FILE}
-
-}
+# original(){
+# BOOT_SIZE=$(du -sh ${EXPORT_ROOTFS_DIR}/boot -B M | cut -f 1 | tr -d M)
+# TOTAL_SIZE=$(du -sh ${EXPORT_ROOTFS_DIR} -B M | cut -f 1 | tr -d M)
+# IMG_SIZE=$(expr $BOOT_SIZE \* 2 \+ $TOTAL_SIZE \+ 512)M
+# fallocate -l ${IMG_SIZE} ${IMG_FILE}
+# }

@@ -12,7 +12,7 @@ reboot_pi () {
 
 check_commands () {
   if ! command -v whiptail > /dev/null; then
-      echo ="whiptail not found"
+      echo "whiptail not found"
       sleep 5
       return 1
   fi
@@ -92,13 +92,47 @@ check_variables () {
   fi
 }
 
+first_boot_mk_partions(){
+  echo "P1_SECTORS=$P1_SECTORS
+  P2_SECTORS=$P2_SECTORS
+  P3_SECTORS=$P3_SECTORS
+  P4_SECTORS=$P4_SECTORS
+  P1_START_SEC=$P1_OFFSET
+  P2_START_SEC=$P2_START_SEC
+  P3_START_SEC=$P3_START_SEC
+  P3_END_SEC=$P3_END_SEC
+  P4_START_SEC=$P4_START_SEC
+  P5_START_SEC=$P5_START_SEC" >> ${EXPORT_ROOTFS_DIR}/_fs_info
+  # parted -m /dev/mmcblk0 u s mkpart p ext4 8192 139234
+  # parted -m /dev/mmcblk0 u s mkpart p ext4 141312 2238464
+
+  # pri partition 3
+  if ! parted -m $ROOT_DEV u s mkpart p ext4 $P3_START_SEC $P3_END_SEC ; then
+    FAIL_REASON="Primary partition 3 create failed"
+    return 1
+  fi
+  # extended partition 4
+  if ! parted -m $ROOT_DEV u s mkpart e $P4_START_SEC 98% ; then
+    FAIL_REASON="Extended partition create failed"
+    return 1
+  fi
+  # logical partition 5
+  if ! parted -m $ROOT_DEV u s mkpart l $P5_START_SEC 96% ; then
+    FAIL_REASON="Logical partition create failed"
+    return 1
+  fi
+}
+
+
 main () {
   get_variables
 
   if ! check_variables; then
     return 1
   fi
-
+  if [ -f /_fs_info ];then
+    . /fs_info
+  fi
   if [ "$NOOBS" = "1" ]; then
     BCM_MODULE=`cat /proc/cpuinfo | grep -e "^Hardware" | cut -d ":" -f 2 | tr -d " " | tr '[:upper:]' '[:lower:]'`
     if ! modprobe $BCM_MODULE; then
@@ -107,28 +141,24 @@ main () {
     fi
     echo $BOOT_PART_NUM > /sys/module/${BCM_MODULE}/parameters/reboot_part
   fi
+  first_boot_mk_partions
 
-START=$(parted -slm /dev/mmcblk0| cut -d ':' -f3 | tail -n 2 | head -n 1);
-
-  if ! parted -s -m $ROOT_DEV u s resizepart $EXT_PART_NUM yes $TARGET_END; then
-
-
-
-#   if [ $ROOT_PART_END -eq $TARGET_END ]; then
-#     reboot_pi
-#   fi
-#
-#   if [ "$NOOBS" = "1" ]; then
-#     if ! parted -m $ROOT_DEV u s resizepart $EXT_PART_NUM yes $TARGET_END; then
-#       FAIL_REASON="Extended partition resize failed"
-#       return 1
-#     fi
-#   fi
-#
-# if ! parted -m $ROOT_DEV u s resizepart $ROOT_PART_NUM $TARGET_END; then
-#     FAIL_REASON="Root partition resize failed"
-#     return 1
-#   fi
+  # START=$(parted -slm /dev/mmcblk0| cut -d ':' -f3 | tail -n 2 | head -n 1);
+  #   if [ $ROOT_PART_END -eq $TARGET_END ]; then
+  #     reboot_pi
+  #   fi
+  #
+  #   if [ "$NOOBS" = "1" ]; then
+  #     if ! parted -m $ROOT_DEV u s resizepart $EXT_PART_NUM yes $TARGET_END; then
+  #       FAIL_REASON="Extended partition resize failed"
+  #       return 1
+  #     fi
+  #   fi
+  #
+  # if ! parted -m $ROOT_DEV u s resizepart $ROOT_PART_NUM $TARGET_END; then
+  #     FAIL_REASON="Root partition resize failed"
+  #     return 1
+  #   fi
 
   return 0
 }
@@ -148,11 +178,11 @@ if ! check_commands; then
 fi
 
 if main; then
-  whiptail --infobox "Resized root filesystem. Rebooting in 5 seconds..." 20 60
+  whiptail --infobox "Added partions 3 4 5. Rebooting in 5 seconds..." 20 60
   sleep 5
 else
   sleep 5
-  whiptail --msgbox "Could not expand filesystem, please try raspi-config or rc_gui.\n${FAIL_REASON}" 20 60
+  whiptail --msgbox "Could not create additional partions.\n${FAIL_REASON}" 20 60
 fi
 
 reboot_pi
