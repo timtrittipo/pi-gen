@@ -45,16 +45,16 @@ _install_node(){
 
 	NODE_TAR=${BIN_DIR}/node.tar.xz
 	mkdir -p ${BIN_DIR}
-	NODE_DEST=${ROOTFS_DIR}/usr/local/node
+	NODE_ROOTFS_DEST=/usr/local/node
+	NODE_DEST=${ROOTFS_DIR}/${NODE_ROOTFS_DEST}
 	install -d ${NODE_DEST}
 
 	wget -nc "$NODE_URL" -O $NODE_TAR
 	tar xf $NODE_TAR  -C ${NODE_DEST} --strip=1
 
 on_chroot sh -e - <<EOF
-	ln -sv ${NODE_DEST}/bin/node ${ROOTFS_DIR}/usr/bin/
-	ln -sv ${NODE_DEST}/bin/npm ${ROOTFS_DIR}/usr/bin/
-	${NODE_DEST}/bin/npm -g pm2
+  cd /usr/bin && ln -sv ${NODE_ROOTFS_DEST}/bin/node . && ln -sv ${NODE_ROOTFS_DEST}/bin/npm .
+	${NODE_ROOTFS_DEST}/bin/npm -g pm2
 
 EOF
 
