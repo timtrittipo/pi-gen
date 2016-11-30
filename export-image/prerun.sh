@@ -129,9 +129,9 @@ mkdir -p ${ROOTFS_DIR}/boot
 mkdir -p ${ROOTFS_DIR}/opt/$APP_NAME/data
 mount -v $BOOT_DEV ${ROOTFS_DIR}/boot -t vfat
 
-/bin/cp -fv ${SCRIPT_DIR}/init_resize.sh ${ROOTFS_DIR}/usr/lib/raspi-config/init_resize.sh
-rsync -aHAXx ${EXPORT_ROOTFS_DIR}/ ${ROOTFS_DIR}/
 
+rsync -aHAXx ${EXPORT_ROOTFS_DIR}/ ${ROOTFS_DIR}/
+/bin/cp -fv ${SCRIPT_DIR}/init_resize.sh ${ROOTFS_DIR}/usr/lib/raspi-config/init_resize.sh
 
 # original(){
 # BOOT_SIZE=$(du -sh ${EXPORT_ROOTFS_DIR}/boot -B M | cut -f 1 | tr -d M)
