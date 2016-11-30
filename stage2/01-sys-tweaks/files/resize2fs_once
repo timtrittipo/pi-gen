@@ -25,22 +25,26 @@ _volumes_be_logical(){
   fi
 
   if ! pvcreate -v $VGPV; then
-    log_daemon_msg "error pvcreate"
+    OPT_ERROR_CODE+="pvcreate $? - "
   fi
 
   if ! vgcreate --autobackup y --verbose $VGNAME $VGPV; then
-    log_daemon_msg "error vgcreate"
+    OPT_ERROR_CODE+="vgcreate $? - "
   fi
 
-  if ! lvcreate --autobackup y --verbose --cache --cachemode writethrough --name $LVNAME --extents 92%FREE $VGNAME ; then
-    log_daemon_msg "error lvcreate"
+  if ! lvcreate --autobackup y --verbose --name $LVNAME --extents 92%FREE $VGNAME ; then
+    OPT_ERROR_CODE+="lvcreate $? - "
   fi
 
   if ! mkfs.ext4 -m 12 -E num_backup_sb=2,discard,mmp_update_interval=120 /dev/$VGNAME/$LVNAME; then
-    log_daemon_msg "error mkfs.ext4"
+    OPT_ERROR_CODE+="mkfs.ext4 $? - "
   else
     echo "/dev/mapper/${VGNAME}-${LVNAME} /opt          ext4    defaults        1 2" >> /etc/fstab
+    log_daemon_msg "added /opt to fstab"
+
   fi
+
+   [ -n "$OPT_ERROR_CODE" ] && log_daemon_msg "Errors during $OPT_ERROR_CODE"
 
   if [ -d /_opt_prep ]; then
     mv -fv /_opt_prep /opt
