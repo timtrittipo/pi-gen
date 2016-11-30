@@ -54,9 +54,8 @@ _install_node(){
 
 on_chroot sh -e - <<EOF
   cd /usr/bin && ln -sv ${NODE_ROOTFS_DEST}/bin/node . && ln -sv ${NODE_ROOTFS_DEST}/bin/npm .
-	${NODE_ROOTFS_DEST}/bin/npm -g pm2
-
 EOF
+# ${NODE_ROOTFS_DEST}/bin/npm -g pm2
 
 }
 

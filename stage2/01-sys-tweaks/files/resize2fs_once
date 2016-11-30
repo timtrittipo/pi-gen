@@ -16,6 +16,17 @@ VGPV=${DISK}${OPT_PART} # volume group physical volume
 VGNAME=vg0
 LVNAME=opt
 
+
+_install_pm2(){
+  if  /usr/local/node/bin/npm install -g pm2 >/_x_RMME_x_install_log 2>&1; then
+    log_daemon_msg "installed pm2"
+    rm -f /_x_RMME_x_install_log
+    echo 'PATH=/usr/local/node/bin:$PATH' > /etc/profile.d/pm2path.sh
+    echo 'export PATH'                   >> /etc/profile.d/pm2path.sh
+  else
+    log_daemon_msg "error installing pm2 "
+  fi
+}
 _volumes_be_logical(){
   if [ ! -b $VGPV ]; then
     log_daemon_msg "$VGPV not present"
@@ -59,10 +70,17 @@ _volumes_be_logical(){
 
 case "$1" in
   start)
+
     log_daemon_msg "Starting resize2fs_once -- Setting up lvm2"
-    _volumes_be_logical
+    _install_pm2
+    _volumes_be_logical  &&
+    update-rc.d resize2fs_once remove &&
+    rm /etc/init.d/resize2fs_once &&
     log_end_msg $?
     ;;
+  stop)
+     exit 0
+     ;;
   *)
     echo "Usage: $0 start" >&2
     exit 3
