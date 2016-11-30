@@ -4,7 +4,9 @@ sudo psmisc
 module-init-tools ed
 #ncdu crda
 console-setup keyboard-configuration debconf-utils parted unzip
-# python bash-completion pkg-config
+# python
+bash-completion
+# pkg-config
 hardlink ca-certificates curl
 fake-hwclock ntp
 usbutils
@@ -16,3 +18,4 @@ raspberrypi-sys-mods
 # pi-bluetooth
 apt-listchanges
 usb-modeswitch
+vim-tiny
