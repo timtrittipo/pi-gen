@@ -1,7 +1,7 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          resize2fs_once
-# Required-Start:
+# Required-Start: lvm2
 # Required-Stop:
 # Default-Start: 3
 # Default-Stop:
@@ -28,11 +28,11 @@ _volumes_be_logical(){
     log_daemon_msg "error pvcreate"
   fi
 
-  if ! vgcreate --autobackup y --verbose --name $VGNAME $VGPV; then
+  if ! vgcreate --autobackup y --verbose $VGNAME $VGPV; then
     log_daemon_msg "error vgcreate"
   fi
 
-  if ! lvcreate --autobackup y --verbose --cache --cachemode writethrough --name $LVNAME --size 92% $VGNAME ; then
+  if ! lvcreate --autobackup y --verbose --cache --cachemode writethrough --name $LVNAME --extents 92%FREE $VGNAME ; then
     log_daemon_msg "error lvcreate"
   fi
 
@@ -46,7 +46,7 @@ _volumes_be_logical(){
     mv -fv /_opt_prep /opt
   else
     log_daemon_msg "_opt_prep not present"
-  fi 
+  fi
 
 
     # # ext4 options
