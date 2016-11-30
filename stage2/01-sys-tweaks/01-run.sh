@@ -49,7 +49,7 @@ _install_node(){
 	NODE_DEST=${ROOTFS_DIR}/${NODE_ROOTFS_DEST}
 	install -d ${NODE_DEST}
 
-	wget -nc "$NODE_URL" -O $NODE_TAR
+	wget -nc "$NODE_URL" -O $NODE_TAR || true
 	tar xf $NODE_TAR  -C ${NODE_DEST} --strip=1
 
 on_chroot sh -e - <<EOF
