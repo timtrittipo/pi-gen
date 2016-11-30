@@ -36,39 +36,30 @@ _volumes_be_logical(){
     OPT_ERROR_CODE+="lvcreate $? - "
   fi
 
-  if ! mkfs.ext4 -m 12 -E num_backup_sb=2,discard,mmp_update_interval=120 /dev/$VGNAME/$LVNAME; then
+      # ::: ext4 options:
+      # -m 12           - reserve 12%
+      # -i 1w           - interval-between-checks 1 week
+      # num_backup_sb=2 - create 3 backup superblocks
+      # :::               see   Manual page mkfs.ext4(8) tune2fs
+  if ! mkfs.ext4 -m 12 -i 1w -E num_backup_sb=2,discard /dev/$VGNAME/$LVNAME; then
     OPT_ERROR_CODE+="mkfs.ext4 $? - "
   else
     echo "/dev/mapper/${VGNAME}-${LVNAME} /opt          ext4    defaults        1 2" >> /etc/fstab
     log_daemon_msg "added /opt to fstab"
-
   fi
-
-   [ -n "$OPT_ERROR_CODE" ] && log_daemon_msg "Errors during $OPT_ERROR_CODE"
-
   if [ -d /_opt_prep ]; then
     mv -fv /_opt_prep /opt
   else
     log_daemon_msg "_opt_prep not present"
   fi
 
+  [ -n "$OPT_ERROR_CODE" ] && log_daemon_msg "Errors during $OPT_ERROR_CODE"
 
-    # # ext4 options
-    # # -m 12 - reserve 12%
-    # # num_backup_sb=2 - create 3 backup superblocks
-    # # discard - true
-    # # mmp_update_interval=120 - only force write every 120 seconds to increase sdcard lifespan
-
-      # OPT_DEV=$(ls /dev/mapper/*opt) &&
-      # resize2fs $OPT_DEV &&
-      # update-rc.d resize2fs_once remove &&
-      # rm /etc/init.d/resize2fs_once &&
 }
 
 case "$1" in
   start)
-    log_daemon_msg "Starting resize2fs_once -- "
-    log_daemon_msg "Setting up lvm2"
+    log_daemon_msg "Starting resize2fs_once -- Setting up lvm2"
     _volumes_be_logical
     log_end_msg $?
     ;;
@@ -77,3 +68,9 @@ case "$1" in
     exit 3
     ;;
 esac
+
+
+# OPT_DEV=$(ls /dev/mapper/*opt) &&
+# resize2fs $OPT_DEV &&
+# update-rc.d resize2fs_once remove &&
+# rm /etc/init.d/resize2fs_once &&
