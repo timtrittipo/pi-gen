@@ -1,11 +1,11 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          resize2fs_once
-# Required-Start: lvm2
+# Required-Start: lvm2 $network
 # Required-Stop:
 # Default-Start: 3
 # Default-Stop:
-# Short-Description: Resize the /opt filesystem to fill partition
+# Short-Description: config partitions lvm pm2
 # Description:
 ### END INIT INFO
 . /lib/lsb/init-functions
