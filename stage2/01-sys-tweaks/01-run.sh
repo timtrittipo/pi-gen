@@ -36,7 +36,8 @@ usermod --pass='*' root
 EOF
 
 _install_node(){
-	${NODE_URL:="https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-armv7l.tar.xz"}
+
+	NODE_URL=${NODE_URL:-"https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-armv7l.tar.xz"}
 	BIN_DIR=${SCRIPT_DIR}/binaries
 	NODE_TAR=${BIN_DIR}/node.tar.xz
 	NODE_ROOTFS_DEST=/usr/local/node

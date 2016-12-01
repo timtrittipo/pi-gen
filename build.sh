@@ -133,7 +133,7 @@ if [ -f build.env ]; then
 fi
 
 IMG_NAME=${IMG_NAME:-cibuild}
-APP_NAME=${IMG_NAME:-default_app_name}
+APP_NAME=${APP_NAME:-default_app_name}
 # if which which apt-cacher >/dev/null 2&>1; then
 # 	APT_PROXY=${APT_PROXY:-APT_PROXY=http://127.0.0.1:3142}
 # fi
